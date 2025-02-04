@@ -15,9 +15,9 @@ interface Location {
 }
 
 const locations: Location[] = [
-  { id: 1, name: "São Paulo", lat: -23.5505, lng: -46.6333, color: "#ff0000" },
-  { id: 2, name: "Tokyo", lat: 35.6762, lng: 139.6503, color: "#00ff00" },
-  { id: 3, name: "London", lat: 51.5074, lng: -0.1278, color: "#0000ff" },
+  { id: 1, name: "brasil", lat: -23.5505, lng: -46.6333, color: "#ff0000" },
+  { id: 2, name: "eua", lat: 40.7128, lng: -74.006, color: "#00ff00" },
+  { id: 3, name: "coreia", lat: 35.1796, lng: 129.0756, color: "#0000ff" },
 ];
 
 function latLngToVector3(
@@ -154,7 +154,7 @@ function Earth() {
 }
 
 export default function Globe() {
-  const [initialCameraPosition] = useState(() => {
+  const [initialCameraPosition] = useState<[number, number, number]>(() => {
     const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
     return [0, 0, isMobile ? 12 : 8];
   });
