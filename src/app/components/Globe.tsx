@@ -31,22 +31,28 @@ const locations: Location[] = [
     iconUrl: "/icon.png",
     songs: [
       {
-        title: "tudo",
-        artist: "liniker",
-        link: "https://open.spotify.com/intl-pt/track/6iBMj762l27f5fH6E1PUHE?si=8c00fbf420914402",
-      },
-      {
-        title: "a gente nunca conversou (moça)",
-        artist: "lagum",
+        title: "Ultima Vez",
+        artist: "Aleem Neckklace",
         link: "https://open.spotify.com/intl-pt/track/7eRhMBRHhmRA7VvWLVIMyO?si=87f05a0893af4679",
       },
       {
         title: "a gente nunca conversou (moça)",
         artist: "lagum",
         link: "https://open.spotify.com/intl-pt/track/7eRhMBRHhmRA7VvWLVIMyO?si=87f05a0893af4679",
+      },
+      {
+        title: "YSL",
+        artist: "yunk vino",
+        link: "https://open.spotify.com/intl-pt/track/4O3nF2ZJXQJv7l9yE7RgtL?si=043fb0412ab1427c",
+      },
+      {
+        title: "FNB",
+        artist: "japa, ryu, the runner",
+        link: "https://open.spotify.com/intl-pt/track/5JX23868UTT3DBgj7i5yrK?si=5cd2337e6f9742cf",
       },
     ],
   },
+
   {
     id: 2,
     name: "eua",
@@ -69,10 +75,15 @@ const locations: Location[] = [
         artist: "Christian Kuria",
         link: "https://open.spotify.com/intl-pt/track/6RMltEudPPFoJuUoshxRBB?si=e6f8f7148ccf479f",
       },
-     {
+      {
         title: "Come Through and Chill",
         artist: "Miguel, J.Cole, Salaam Remi",
         link: "https://open.spotify.com/intl-pt/track/1m8WpLYXEiNVZchsWEcCSy?si=1fe729bc3fc84f1c",
+      },
+      {
+        title: "biking",
+        artist: "frank ocean, jayz, tyler, the creator",
+        link: "https://open.spotify.com/intl-pt/track/2q0VexHJirnUPnEOhr2DxK?si=47a6d6b591324bff",
       },
     ],
   },
@@ -104,7 +115,6 @@ const locations: Location[] = [
         artist: "dean, syd",
         link: "https://open.spotify.com/intl-pt/track/6wcRv0UBvEH9NCIA3IVyQs?si=106a1715b5b24b1f",
       },
-      
     ],
   },
 ];
@@ -126,8 +136,10 @@ function latLngToVector3(
 
 function Earth({
   onLocationSelect,
+  selectedLocation,
 }: {
   onLocationSelect: (location: Location) => void;
+  selectedLocation: Location | null;
 }) {
   const earthRef = useRef<THREE.Mesh>(null);
   const cloudsRef = useRef<THREE.Mesh>(null);
@@ -225,35 +237,80 @@ function Earth({
             key={location.id}
             position={latLngToVector3(location.lat, location.lng, 2.1)}
           >
-            <sprite
-              onClick={(e) => {
-                e.stopPropagation();
-                handleMarkerClick(location);
-              }}
-              scale={isMobile ? 0.5 : 0.3}
-            >
-              <spriteMaterial
-                map={markerTextures[index]}
-                transparent={true}
-                sizeAttenuation={true}
-                color="#ffffff"
-              />
-            </sprite>
             <Html
-              position={[0, 0.2, 0]}
+              position={[0, 0, 0]}
               center
               distanceFactor={isMobile ? 15 : 10}
               style={{
-                background: "rgba(0,0,0,0.8)",
-                color: "white",
-                padding: isMobile ? "8px 12px" : "5px 10px",
-                borderRadius: "5px",
-                whiteSpace: "nowrap",
-                pointerEvents: "none",
-                fontSize: isMobile ? "14px" : "12px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "8px",
+                pointerEvents: selectedLocation ? "none" : "auto",
+                zIndex: selectedLocation ? -1 : 1,
               }}
             >
-              {location.name}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleMarkerClick(location);
+                }}
+                style={{
+                  background: "rgba(29, 185, 84, 0.9)",
+                  border: "none",
+                  borderRadius: "50%",
+                  width: isMobile ? "45px" : "35px",
+                  height: isMobile ? "45px" : "35px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: isMobile ? "12px" : "10px",
+                  fontWeight: "bold",
+                  color: "#fff",
+                  boxShadow: "0 4px 12px rgba(29, 185, 84, 0.5)",
+                  transition: "all 0.3s ease",
+                  position: "relative",
+                  overflow: "hidden",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "scale(1.1)";
+                  e.currentTarget.style.boxShadow =
+                    "0 6px 16px rgba(29, 185, 84, 0.6)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "scale(1)";
+                  e.currentTarget.style.boxShadow =
+                    "0 4px 12px rgba(29, 185, 84, 0.5)";
+                }}
+              >
+                <div
+                  style={{
+                    width: "0",
+                    height: "0",
+                    borderStyle: "solid",
+                    borderWidth: "6px 0 6px 10px",
+                    borderColor: "transparent transparent transparent #ffffff",
+                    marginLeft: "2px",
+                  }}
+                />
+              </button>
+              <div
+                style={{
+                  background: "rgba(0,0,0,0.8)",
+                  color: "white",
+                  padding: isMobile ? "8px 12px" : "5px 10px",
+                  borderRadius: "5px",
+                  whiteSpace: "nowrap",
+                  fontSize: isMobile ? "14px" : "12px",
+                  backdropFilter: "blur(5px)",
+                  textTransform: "uppercase",
+                  letterSpacing: "1px",
+                  fontWeight: "500",
+                }}
+              >
+                {location.name}
+              </div>
             </Html>
           </group>
         ))}
@@ -271,10 +328,19 @@ export default function Globe() {
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
     null
   );
+  const [showToast, setShowToast] = useState(true);
 
   const handleLocationSelect = (location: Location) => {
     setSelectedLocation(location);
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowToast(false);
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <>
@@ -282,76 +348,127 @@ export default function Globe() {
         style={{
           width: "100%",
           height: "100vh",
-          background: "#000000",
-          touchAction: "none",
+          position: "relative",
+          overflow: "hidden",
         }}
       >
-        <Canvas camera={{ position: initialCameraPosition, fov: 45 }}>
-          <color attach="background" args={["#000"]} />
-          <ambientLight intensity={0.3} />
-          <pointLight position={[10, 10, 10]} intensity={1.5} />
-          <directionalLight position={[0, 0, 5]} intensity={1} />
-          <Earth onLocationSelect={handleLocationSelect} />
-        </Canvas>
-      </div>
-      {selectedLocation && (
         <div
           style={{
-            position: "fixed",
-            top: "60%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            backgroundColor: "rgba(0, 0, 0, 0.95)",
-            padding: "25px",
-            borderRadius: "15px",
-            zIndex: 1000,
-            minWidth: "320px",
-            maxWidth: "90vw",
-            color: "white",
-            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            zIndex: 1,
           }}
         >
+          <Canvas camera={{ position: initialCameraPosition, fov: 45 }}>
+            <color attach="background" args={["#000"]} />
+            <ambientLight intensity={0.3} />
+            <pointLight position={[10, 10, 10]} intensity={1.5} />
+            <directionalLight position={[0, 0, 5]} intensity={1} />
+            <Earth
+              onLocationSelect={handleLocationSelect}
+              selectedLocation={selectedLocation}
+            />
+          </Canvas>
+        </div>
+
+        {selectedLocation && (
           <div
             style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
               display: "flex",
-              justifyContent: "space-between",
               alignItems: "center",
-              marginBottom: "20px",
-              borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-              paddingBottom: "10px",
+              justifyContent: "center",
+              zIndex: 1000000,
             }}
           >
-            <h2 style={{ margin: 0, fontSize: "1.5rem" }}>
-              {selectedLocation.name === "brasil"
-                ? `musiquitas do ${selectedLocation.name}`
-                : `musiquicas de ${selectedLocation.name}`}
-            </h2>
-            <button
-              onClick={() => setSelectedLocation(null)}
-              className={styles.closeButton}
+            <div
+              style={{
+                backgroundColor: "rgba(0, 0, 0, 0.95)",
+                padding: "25px",
+                borderRadius: "15px",
+                minWidth: "320px",
+                maxWidth: "90vw",
+                color: "white",
+                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                position: "relative",
+              }}
             >
-              ×
-            </button>
-          </div>
-          <div style={{ maxHeight: "60vh", overflowY: "auto" }}>
-            {selectedLocation.songs.map((song, index) => (
-              <div key={index} className={styles.songItem}>
-                <div style={{ marginBottom: "10px", fontSize: "1.1rem" }}>
-                  {song.title} - {song.artist}
-                </div>
-                <a
-                  href={song.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.spotifyLink}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "20px",
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+                  paddingBottom: "10px",
+                }}
+              >
+                <h2 style={{ margin: 0, fontSize: "1.5rem" }}>
+                  {selectedLocation.name === "brasil"
+                    ? `musiquitas do ${selectedLocation.name}`
+                    : `musiquicas de ${selectedLocation.name}`}
+                </h2>
+                <button
+                  onClick={() => setSelectedLocation(null)}
+                  className={styles.closeButton}
                 >
-                  Ouvir no Spotify
-                </a>
+                  ×
+                </button>
               </div>
-            ))}
+              <div style={{ maxHeight: "60vh", overflowY: "auto" }}>
+                {selectedLocation.songs.map((song, index) => (
+                  <div key={index} className={styles.songItem}>
+                    <div style={{ marginBottom: "10px", fontSize: "1.1rem" }}>
+                      {song.title} - {song.artist}
+                    </div>
+                    <a
+                      href={song.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.spotifyLink}
+                    >
+                      Ouvir no Spotify
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {showToast && (
+          <div
+            style={{
+              position: "fixed",
+              top: "20px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              color: "white",
+              padding: "15px 25px",
+              borderRadius: "10px",
+              zIndex: 1000000,
+              textAlign: "center",
+              animation: "fadeOut 0.5s ease-in-out 4.5s forwards",
+              fontSize:
+                typeof window !== "undefined" && window.innerWidth < 768
+                  ? "14px"
+                  : "16px",
+              maxWidth: "90vw",
+              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.2)",
+            }}
+          >
+            Só mover com o mouse ou o dedo o planeta, e clicar em cima do país
+            para aproximar
+          </div>
+        )}
+      </div>
     </>
   );
 }
