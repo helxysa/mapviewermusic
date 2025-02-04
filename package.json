@@ -9,17 +9,24 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@react-three/drei": "^9.121.4",
+    "@react-three/fiber": "^8.17.14",
+    "@types/gsap": "^1.20.2",
+    "@types/three": "^0.173.0",
+    "gsap": "^3.12.7",
+    "next": "13.5.8",
     "react": "^18",
     "react-dom": "^18",
-    "next": "13.5.8"
+    "three": "^0.173.0"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10",
+    "next-transpile-modules": "^10.0.1",
     "postcss": "^8",
-    "tailwindcss": "^3"
+    "tailwindcss": "^3",
+    "typescript": "^5"
   }
 }
