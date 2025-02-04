@@ -88,7 +88,6 @@ function Earth() {
         enableDamping={true}
         dampingFactor={0.05}
         rotateSpeed={isMobile ? 0.5 : 1}
-        touchAction="none"
       />
 
       <group>
