@@ -86,8 +86,8 @@ function Earth() {
         maxDistance={15}
         enablePan={false}
         enableDamping={true}
-        dampingFactor={0.05}
-        rotateSpeed={isMobile ? 0.5 : 1}
+        dampingFactor={isMobile ? 0.02 : 0.05}
+        rotateSpeed={isMobile ? 1.5 : 1}
       />
 
       <group>
