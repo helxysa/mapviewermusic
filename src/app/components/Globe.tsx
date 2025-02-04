@@ -228,7 +228,7 @@ function Earth({
     }
 
     const distance = camera.position.length();
-    setShowMarkers(distance < 10);
+    setShowMarkers(distance < 15);
   });
 
   if (!texturesLoaded) {
@@ -240,12 +240,12 @@ function Earth({
       <OrbitControls
         ref={controlsRef}
         enableZoom={true}
-        minDistance={isMobile ? 6 : 4}
+        minDistance={isMobile ? 4 : 4}
         maxDistance={15}
         enablePan={false}
         enableDamping={true}
-        dampingFactor={isMobile ? 0.02 : 0.05}
-        rotateSpeed={isMobile ? 2.1 : 1}
+        dampingFactor={isMobile ? 0.05 : 0.05}
+        rotateSpeed={isMobile ? 1 : 1}
       />
 
       <mesh>
@@ -396,7 +396,7 @@ function Earth({
 export default function Globe() {
   const [initialCameraPosition] = useState<[number, number, number]>(() => {
     const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-    return [0, 0, isMobile ? 12 : 8];
+    return [0, 0, isMobile ? 8 : 8];
   });
 
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
