@@ -329,13 +329,13 @@ function Earth({
                   background: "rgba(29, 185, 84, 0.9)",
                   border: "none",
                   borderRadius: "50%",
-                  width: isMobile ? "45px" : "35px",
-                  height: isMobile ? "45px" : "35px",
+                  width: isMobile ? "25px" : "35px",
+                  height: isMobile ? "25px" : "35px",
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: isMobile ? "12px" : "10px",
+                  fontSize: isMobile ? "8px" : "10px",
                   fontWeight: "bold",
                   color: "#fff",
                   boxShadow: "0 4px 12px rgba(29, 185, 84, 0.5)",
@@ -346,7 +346,7 @@ function Earth({
                     selectedLocation || !showMarkers ? "hidden" : "visible",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "scale(1.1)";
+                  e.currentTarget.style.transform = "scale(1.05)";
                   e.currentTarget.style.boxShadow =
                     "0 6px 16px rgba(29, 185, 84, 0.6)";
                 }}
