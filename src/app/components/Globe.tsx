@@ -565,8 +565,7 @@ export default function Globe() {
             boxShadow: "0 4px 6px rgba(0, 0, 0, 0.2)",
           }}
         >
-          Só mover com o mouse ou o dedo o planeta, e clicar em cima do país
-          para aproximar
+          pra tu conseguir escutar todas as musicas do mundo, so dar zoom
         </div>
       )}
     </div>
