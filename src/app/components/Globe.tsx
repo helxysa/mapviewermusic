@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { Canvas, useLoader, useThree } from "@react-three/fiber";
+import { Canvas, useLoader, useThree, useFrame } from "@react-three/fiber";
 import { OrbitControls, Sphere, Html } from "@react-three/drei";
 import * as THREE from "three";
 import { gsap } from "gsap";
@@ -146,6 +146,39 @@ function Earth({
   const controlsRef = useRef<any>(null);
   const { camera } = useThree();
   const [isMobile, setIsMobile] = useState(false);
+  const [texturesLoaded, setTexturesLoaded] = useState(false);
+  const [showMarkers, setShowMarkers] = useState(true);
+
+  const [textures, setTextures] = useState<{
+    earthTexture: THREE.Texture | null;
+    cloudsTexture: THREE.Texture | null;
+    starsTexture: THREE.Texture | null;
+    markerTextures: THREE.Texture[];
+  }>({
+    earthTexture: null,
+    cloudsTexture: null,
+    starsTexture: null,
+    markerTextures: [],
+  });
+
+  useEffect(() => {
+    const textureLoader = new THREE.TextureLoader();
+
+    Promise.all([
+      textureLoader.loadAsync("/earth_texture.jpg"),
+      textureLoader.loadAsync("/clouds.jpg"),
+      textureLoader.loadAsync("/stars.jpg"),
+      ...locations.map((loc) => textureLoader.loadAsync(loc.iconUrl)),
+    ]).then(([earth, clouds, stars, ...markers]) => {
+      setTextures({
+        earthTexture: earth,
+        cloudsTexture: clouds,
+        starsTexture: stars,
+        markerTextures: markers,
+      });
+      setTexturesLoaded(true);
+    });
+  }, []);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -157,11 +190,6 @@ function Earth({
 
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
-
-  const [earthTexture, cloudsTexture] = useLoader(THREE.TextureLoader, [
-    "/earth_texture.jpg",
-    "/clouds.jpg",
-  ]);
 
   const markerTextures = useLoader(
     THREE.TextureLoader,
@@ -194,6 +222,19 @@ function Earth({
     });
   };
 
+  useFrame(() => {
+    if (cloudsRef.current) {
+      cloudsRef.current.rotation.y += 0.0005;
+    }
+
+    const distance = camera.position.length();
+    setShowMarkers(distance < 10);
+  });
+
+  if (!texturesLoaded) {
+    return null;
+  }
+
   return (
     <group>
       <OrbitControls
@@ -207,15 +248,36 @@ function Earth({
         rotateSpeed={isMobile ? 2.1 : 1}
       />
 
+      <mesh>
+        <sphereGeometry args={[50, 64, 64]} />
+        <meshBasicMaterial map={textures.starsTexture} side={THREE.BackSide} />
+      </mesh>
+
       <group>
         <Sphere
           ref={earthRef}
           args={[2, isMobile ? 32 : 64, isMobile ? 32 : 64]}
         >
           <meshPhongMaterial
-            map={earthTexture}
-            specular={new THREE.Color("grey")}
-            shininess={5}
+            map={textures.earthTexture}
+            specularMap={textures.earthTexture}
+            specular={new THREE.Color(0x666666)}
+            shininess={10}
+            bumpMap={textures.earthTexture}
+            bumpScale={0.1}
+          />
+        </Sphere>
+
+        <Sphere
+          ref={cloudsRef}
+          args={[2.005, isMobile ? 32 : 64, isMobile ? 32 : 64]}
+        >
+          <meshPhongMaterial
+            transparent
+            opacity={0.2}
+            color="#4099ff"
+            blending={THREE.AdditiveBlending}
+            side={THREE.FrontSide}
           />
         </Sphere>
 
@@ -224,12 +286,18 @@ function Earth({
           args={[2.05, isMobile ? 32 : 64, isMobile ? 32 : 64]}
         >
           <meshPhongMaterial
-            map={cloudsTexture}
+            map={textures.cloudsTexture}
             transparent={true}
             opacity={0.4}
+            depthWrite={false}
           />
         </Sphere>
       </group>
+
+      <ambientLight intensity={0.1} />
+      <pointLight position={[10, 10, 10]} intensity={0.7} />
+      <directionalLight position={[5, 3, 5]} intensity={1} castShadow />
+      <hemisphereLight args={["#ffffff", "#004080", 0.6]} />
 
       <group>
         {locations.map((location, index) => (
@@ -247,7 +315,9 @@ function Earth({
                 alignItems: "center",
                 gap: "8px",
                 pointerEvents: selectedLocation ? "none" : "auto",
-                zIndex: selectedLocation ? -1 : 1,
+                opacity: selectedLocation || !showMarkers ? 0 : 1,
+                transition: "opacity 0.3s ease",
+                visibility: showMarkers ? "visible" : "hidden",
               }}
             >
               <button
@@ -272,6 +342,8 @@ function Earth({
                   transition: "all 0.3s ease",
                   position: "relative",
                   overflow: "hidden",
+                  visibility:
+                    selectedLocation || !showMarkers ? "hidden" : "visible",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = "scale(1.1)";
@@ -307,6 +379,8 @@ function Earth({
                   textTransform: "uppercase",
                   letterSpacing: "1px",
                   fontWeight: "500",
+                  visibility:
+                    selectedLocation || !showMarkers ? "hidden" : "visible",
                 }}
               >
                 {location.name}
@@ -329,6 +403,7 @@ export default function Globe() {
     null
   );
   const [showToast, setShowToast] = useState(true);
+  const [isClient, setIsClient] = useState(false);
 
   const handleLocationSelect = (location: Location) => {
     setSelectedLocation(location);
@@ -342,133 +417,140 @@ export default function Globe() {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return null;
+  }
+
   return (
-    <>
-      <div
-        style={{
-          width: "100%",
-          height: "100vh",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
+    <div style={{ position: "relative", width: "100%", height: "100vh" }}>
+      {/* Camada 1: Canvas/Globo */}
+      <div style={{ position: "absolute", width: "100%", height: "100%" }}>
+        <Canvas
+          camera={{ position: initialCameraPosition, fov: 45 }}
+          gl={{ antialias: true }}
+        >
+          <color attach="background" args={["#000"]} />
+          <fog attach="fog" args={["#000", 20, 40]} />
+
+          {/* Background Stars */}
+          <mesh>
+            <sphereGeometry args={[50, 64, 64]} />
+            <meshBasicMaterial
+              map={useLoader(THREE.TextureLoader, "/starts.jpg")}
+              side={THREE.BackSide}
+            />
+          </mesh>
+
+          <Earth
+            onLocationSelect={handleLocationSelect}
+            selectedLocation={selectedLocation}
+          />
+        </Canvas>
+      </div>
+
+      {/* Camada 2: Modal */}
+      {selectedLocation && (
         <div
           style={{
-            position: "absolute",
+            position: "fixed",
+            top: 0,
+            left: 0,
             width: "100%",
             height: "100%",
-            zIndex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "rgba(0, 0, 0, 0.75)",
+            zIndex: 100000,
+            pointerEvents: "auto",
           }}
         >
-          <Canvas camera={{ position: initialCameraPosition, fov: 45 }}>
-            <color attach="background" args={["#000"]} />
-            <ambientLight intensity={0.3} />
-            <pointLight position={[10, 10, 10]} intensity={1.5} />
-            <directionalLight position={[0, 0, 5]} intensity={1} />
-            <Earth
-              onLocationSelect={handleLocationSelect}
-              selectedLocation={selectedLocation}
-            />
-          </Canvas>
-        </div>
-
-        {selectedLocation && (
           <div
             style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 1000000,
+              backgroundColor: "rgba(0, 0, 0, 0.95)",
+              padding: "25px",
+              borderRadius: "15px",
+              minWidth: "320px",
+              maxWidth: "90vw",
+              color: "white",
+              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+              position: "relative",
             }}
           >
             <div
               style={{
-                backgroundColor: "rgba(0, 0, 0, 0.95)",
-                padding: "25px",
-                borderRadius: "15px",
-                minWidth: "320px",
-                maxWidth: "90vw",
-                color: "white",
-                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                position: "relative",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "20px",
+                borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+                paddingBottom: "10px",
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "20px",
-                  borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-                  paddingBottom: "10px",
-                }}
+              <h2 style={{ margin: 0, fontSize: "1.5rem" }}>
+                {selectedLocation.name === "brasil"
+                  ? `musiquitas do ${selectedLocation.name}`
+                  : `musiquicas de ${selectedLocation.name}`}
+              </h2>
+              <button
+                onClick={() => setSelectedLocation(null)}
+                className={styles.closeButton}
               >
-                <h2 style={{ margin: 0, fontSize: "1.5rem" }}>
-                  {selectedLocation.name === "brasil"
-                    ? `musiquitas do ${selectedLocation.name}`
-                    : `musiquicas de ${selectedLocation.name}`}
-                </h2>
-                <button
-                  onClick={() => setSelectedLocation(null)}
-                  className={styles.closeButton}
-                >
-                  ×
-                </button>
-              </div>
-              <div style={{ maxHeight: "60vh", overflowY: "auto" }}>
-                {selectedLocation.songs.map((song, index) => (
-                  <div key={index} className={styles.songItem}>
-                    <div style={{ marginBottom: "10px", fontSize: "1.1rem" }}>
-                      {song.title} - {song.artist}
-                    </div>
-                    <a
-                      href={song.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={styles.spotifyLink}
-                    >
-                      Ouvir no Spotify
-                    </a>
+                ×
+              </button>
+            </div>
+            <div style={{ maxHeight: "60vh", overflowY: "auto" }}>
+              {selectedLocation.songs.map((song, index) => (
+                <div key={index} className={styles.songItem}>
+                  <div style={{ marginBottom: "10px", fontSize: "1.1rem" }}>
+                    {song.title} - {song.artist}
                   </div>
-                ))}
-              </div>
+                  <a
+                    href={song.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.spotifyLink}
+                  >
+                    Ouvir no Spotify
+                  </a>
+                </div>
+              ))}
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {showToast && (
-          <div
-            style={{
-              position: "fixed",
-              top: "20px",
-              left: "50%",
-              transform: "translateX(-50%)",
-              backgroundColor: "rgba(0, 0, 0, 0.8)",
-              color: "white",
-              padding: "15px 25px",
-              borderRadius: "10px",
-              zIndex: 1000000,
-              textAlign: "center",
-              animation: "fadeOut 0.5s ease-in-out 4.5s forwards",
-              fontSize:
-                typeof window !== "undefined" && window.innerWidth < 768
-                  ? "14px"
-                  : "16px",
-              maxWidth: "90vw",
-              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.2)",
-            }}
-          >
-            Só mover com o mouse ou o dedo o planeta, e clicar em cima do país
-            para aproximar
-          </div>
-        )}
-      </div>
-    </>
+      {/* Camada 3: Toast */}
+      {showToast && (
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            color: "white",
+            padding: "15px 25px",
+            borderRadius: "10px",
+            zIndex: 10000,
+            textAlign: "center",
+            animation: "fadeOut 0.5s ease-in-out 4.5s forwards",
+            fontSize:
+              typeof window !== "undefined" && window.innerWidth < 768
+                ? "14px"
+                : "16px",
+            maxWidth: "90vw",
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.2)",
+          }}
+        >
+          Só mover com o mouse ou o dedo o planeta, e clicar em cima do país
+          para aproximar
+        </div>
+      )}
+    </div>
   );
 }
