@@ -565,7 +565,7 @@ export default function Globe() {
             boxShadow: "0 4px 6px rgba(0, 0, 0, 0.2)",
           }}
         >
-          pra tu conseguir escutar todas as musicas do mundo, so dar zoom
+          pra vc conseguir escutar todas as musicas do mundo, so dar zoom :D
         </div>
       )}
     </div>
