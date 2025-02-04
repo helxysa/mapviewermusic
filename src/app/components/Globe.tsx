@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Canvas, useLoader, useThree } from "@react-three/fiber";
 import { OrbitControls, Sphere, Html } from "@react-three/drei";
 import * as THREE from "three";
@@ -40,6 +40,18 @@ function Earth() {
   const cloudsRef = useRef<THREE.Mesh>(null);
   const controlsRef = useRef<any>(null);
   const { camera } = useThree();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const [earthTexture, cloudsTexture] = useLoader(THREE.TextureLoader, [
     "/earth_texture.jpg",
@@ -70,15 +82,20 @@ function Earth() {
       <OrbitControls
         ref={controlsRef}
         enableZoom={true}
-        minDistance={4}
+        minDistance={isMobile ? 6 : 4}
         maxDistance={15}
         enablePan={false}
         enableDamping={true}
         dampingFactor={0.05}
+        rotateSpeed={isMobile ? 0.5 : 1}
+        touchAction="none"
       />
 
       <group>
-        <Sphere ref={earthRef} args={[2, 64, 64]}>
+        <Sphere
+          ref={earthRef}
+          args={[2, isMobile ? 32 : 64, isMobile ? 32 : 64]}
+        >
           <meshPhongMaterial
             map={earthTexture}
             specular={new THREE.Color("grey")}
@@ -86,7 +103,10 @@ function Earth() {
           />
         </Sphere>
 
-        <Sphere ref={cloudsRef} args={[2.05, 64, 64]}>
+        <Sphere
+          ref={cloudsRef}
+          args={[2.05, isMobile ? 32 : 64, isMobile ? 32 : 64]}
+        >
           <meshPhongMaterial
             map={cloudsTexture}
             transparent={true}
@@ -107,20 +127,21 @@ function Earth() {
                 handleMarkerClick(location.lat, location.lng);
               }}
             >
-              <sphereGeometry args={[0.1, 16, 16]} />
+              <sphereGeometry args={[isMobile ? 0.15 : 0.1, 16, 16]} />
               <meshBasicMaterial color={location.color} />
             </mesh>
             <Html
               position={[0, 0.3, 0]}
               center
-              distanceFactor={10}
+              distanceFactor={isMobile ? 15 : 10}
               style={{
                 background: "rgba(0,0,0,0.8)",
                 color: "white",
-                padding: "5px 10px",
+                padding: isMobile ? "8px 12px" : "5px 10px",
                 borderRadius: "5px",
                 whiteSpace: "nowrap",
                 pointerEvents: "none",
+                fontSize: isMobile ? "14px" : "12px",
               }}
             >
               {location.name}
@@ -133,9 +154,21 @@ function Earth() {
 }
 
 export default function Globe() {
+  const [initialCameraPosition] = useState(() => {
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    return [0, 0, isMobile ? 12 : 8];
+  });
+
   return (
-    <div style={{ width: "100%", height: "100vh", background: "#000000" }}>
-      <Canvas camera={{ position: [0, 0, 8], fov: 45 }}>
+    <div
+      style={{
+        width: "100%",
+        height: "100vh",
+        background: "#000000",
+        touchAction: "none",
+      }}
+    >
+      <Canvas camera={{ position: initialCameraPosition, fov: 45 }}>
         <color attach="background" args={["#000"]} />
         <ambientLight intensity={0.3} />
         <pointLight position={[10, 10, 10]} intensity={1.5} />
