@@ -87,7 +87,7 @@ function Earth() {
         enablePan={false}
         enableDamping={true}
         dampingFactor={isMobile ? 0.02 : 0.05}
-        rotateSpeed={isMobile ? 1.5 : 1}
+        rotateSpeed={isMobile ? 2.1 : 1}
       />
 
       <group>
