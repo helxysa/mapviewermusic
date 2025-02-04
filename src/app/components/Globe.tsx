@@ -396,7 +396,7 @@ function Earth({
 export default function Globe() {
   const [initialCameraPosition] = useState<[number, number, number]>(() => {
     const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-    return [0, 0, isMobile ? 8 : 8];
+    return [0, 0, 15];
   });
 
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
@@ -404,9 +404,27 @@ export default function Globe() {
   );
   const [showToast, setShowToast] = useState(true);
   const [isClient, setIsClient] = useState(false);
+  const cameraRef = useRef<THREE.Camera | null>(null);
 
   const handleLocationSelect = (location: Location) => {
     setSelectedLocation(location);
+  };
+
+  const handleCloseModal = () => {
+    const camera = cameraRef.current;
+    if (camera) {
+      gsap.to(camera.position, {
+        x: 0,
+        y: 0,
+        z: 15,
+        duration: 1.5,
+        ease: "power2.inOut",
+        onUpdate: () => {
+          camera.lookAt(0, 0, 0);
+        },
+      });
+    }
+    setSelectedLocation(null);
   };
 
   useEffect(() => {
@@ -432,6 +450,9 @@ export default function Globe() {
         <Canvas
           camera={{ position: initialCameraPosition, fov: 45 }}
           gl={{ antialias: true }}
+          onCreated={({ camera }) => {
+            cameraRef.current = camera;
+          }}
         >
           <color attach="background" args={["#000"]} />
           <fog attach="fog" args={["#000", 20, 40]} />
@@ -496,10 +517,7 @@ export default function Globe() {
                   ? `musiquitas do ${selectedLocation.name}`
                   : `musiquicas de ${selectedLocation.name}`}
               </h2>
-              <button
-                onClick={() => setSelectedLocation(null)}
-                className={styles.closeButton}
-              >
+              <button onClick={handleCloseModal} className={styles.closeButton}>
                 ×
               </button>
             </div>
